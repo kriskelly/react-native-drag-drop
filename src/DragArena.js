@@ -87,7 +87,7 @@ export function createDragArena(
         const pan = state.pan = new Animated.ValueXY();
         this.panListener = pan.addListener(this.watchPanChanges.bind(this));
         pan.setOffset({
-          x: 0,
+          x: dragContext.getDragItemOffset(dragItem, 'x'),
           y: dragContext.getDragItemOffset(dragItem, 'y'),
         });
         state.panResponder = this.createPanResponder(pan);

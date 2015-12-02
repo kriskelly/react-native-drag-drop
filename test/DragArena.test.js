@@ -182,6 +182,15 @@ describe('createDragArena', () => {
         expect(instance.state).to.have.property('currentDropZone', 'CALENDAR');
       });
 
+      it('saves the pan with the correct offset', () => {
+        sinon.stub(dragContext, 'getDragItemOffset')
+          .withArgs(dragItem, 'x').returns(123)
+          .withArgs(dragItem, 'y').returns(456);
+        startDrag();
+        expect(instance.state.pan.x).to.have.property('_offset', 123);
+        expect(instance.state.pan.y).to.have.property('_offset', 456);
+      })
+
       it('does not explode if the dragItem changed in between caching the layout and starting the drag', () => {
         // Same ID but different object reference.
         dragItem = {

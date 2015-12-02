@@ -60,7 +60,10 @@ class AnimatedValueXY {
   addListener() {}
   getLayout() {}
   removeListener() {}
-  setOffset() {}
+  setOffset({x, y}) {
+    this.x._offset = x;
+    this.y._offset = y;
+  }
   setValue() {}
 }
 
