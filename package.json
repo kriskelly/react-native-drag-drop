@@ -14,5 +14,8 @@
     "proxyquire": "^1.7.3",
     "sinon": "^1.17.2",
     "skin-deep": "^0.13.0"
+  },
+  "dependencies": {
+    "invariant": "^2.2.0"
   }
 }
