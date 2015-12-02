@@ -67,18 +67,18 @@ describe('DragContext', () => {
       };
       dragItemLayout = {
         y: 123,
-        x: 0,
+        x: 20,
         width: 0,
         height: 0,
       };
       layout = {
         y: 10,
-        x: 0,
+        x: 50,
         width: 0,
         height: 0,
       };
       context.setLayout('fake', layout);
-      context.setContentOffset('fake', {x: 0, y: 20});
+      context.setContentOffset('fake', {x: 10, y: 20});
       context.setDragItemLayout('fake', dragItem, dragItemLayout);
     });
 
@@ -86,16 +86,21 @@ describe('DragContext', () => {
       expect(context.dragItemLayouts.size).to.equal(1);
     });
 
-    it('gets offset for drag item', () => {
-      expect(context.getDragItemYOffset(dragItem))
+    it('gets y offset for drag item', () => {
+      expect(context.getDragItemOffset(dragItem, 'y'))
         .to.equal(10 + 123 - 20);
+    });
+
+    it('gets x offset for drag item', () => {
+      expect(context.getDragItemOffset(dragItem, 'x'))
+        .to.equal(20 + 50 - 10);
     });
 
     it('gets the layout based on the todo ID, not the exact object reference', () => {
       const otherDragItem = {
         id: '123'
       };
-      expect(context.getDragItemYOffset(otherDragItem)).to.exist;
+      expect(context.getDragItemOffset(otherDragItem, 'y')).to.exist;
     });
   });
 

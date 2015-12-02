@@ -88,7 +88,7 @@ export function createDragArena(
         this.panListener = pan.addListener(this.watchPanChanges.bind(this));
         pan.setOffset({
           x: 0,
-          y: dragContext.getDragItemYOffset(dragItem),
+          y: dragContext.getDragItemOffset(dragItem, 'y'),
         });
         state.panResponder = this.createPanResponder(pan);
         return state;
