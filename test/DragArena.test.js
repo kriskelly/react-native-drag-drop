@@ -11,7 +11,6 @@ import React from './__mocks__/react-native';
 import { makeMockComponent } from './makeMockComponent';
 // DragContext has no RN dependencies so we can import the real one.
 import { createDragContext, DragContext } from '../src/DragContext';
-import { DropZones } from '../../../src/constants';
 const { View } = React;
 
 describe('createDragArena', () => {
@@ -162,14 +161,14 @@ describe('createDragArena', () => {
         dragContext.setBaseLayout({y: 0});
 
         dragContext.setDragItemLayout(
-          DropZones.CALENDAR,
+          'CALENDAR',
           dragItem,
           {
             y: 50
           }
         );
 
-        dragContext.initDropZone(DropZones.CALENDAR);
+        dragContext.initDropZone('CALENDAR');
       });
 
       it('saves the dragItem in state', () => {

@@ -9,10 +9,14 @@
   "author": "Kris Kelly",
   "license": "MIT",
   "devDependencies": {
+    "babel": "^5.8.34",
     "chai": "^3.4.1",
-    "mocha": "^2.3.4",
+    "mocha": "^2.3.3",
     "proxyquire": "^1.7.3",
+    "react": "^0.14.3",
+    "react-addons-test-utils": "^0.14.3",
     "sinon": "^1.17.2",
+    "sinon-chai": "^2.8.0",
     "skin-deep": "^0.13.0"
   },
   "dependencies": {
