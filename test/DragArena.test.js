@@ -22,6 +22,7 @@ describe('createDragArena', () => {
   let ShadowComponent;
   let dragContext;
   let createDragPanResponder;
+  let panDirection;
 
   beforeEach(() => {
     createDragPanResponder = sinon.stub();
@@ -42,13 +43,15 @@ describe('createDragArena', () => {
     ShadowComponent = makeMockComponent(View);
 
     dragContext = createDragContext(() => {});
+    panDirection = 'y';
   });
 
   function subject() {
     const component = createDragArena(
       BaseComponent,
       ShadowComponent,
-      dragContext
+      dragContext,
+      panDirection
     );
 
     tree = sd.shallowRender(
@@ -150,7 +153,6 @@ describe('createDragArena', () => {
     describe('startDragHandler', () => {
       let dragItem;
       let instance;
-      let eventTracker;
 
       function startDrag() {
         startDragHandler(dragItem);
@@ -207,6 +209,9 @@ describe('createDragArena', () => {
         createDragPanResponder.returns(responder);
         startDrag();
         expect(instance.state.panResponder).to.equal(responder);
+        expect(createDragPanResponder).to.have.been.calledWithExactly(
+          instance.state, dragContext, 'y', sinon.match.func
+        );
       });
     });
   });

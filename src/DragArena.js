@@ -34,8 +34,12 @@ export type State = {
 export function createDragArena(
   Component: ReactClass,
   DragShadowComponent: ReactClass,
-  dragContext: DragContext
+  dragContext: DragContext,
+  panDirection: string
 ): ReactClass {
+  invariant(panDirection === 'x' ||
+            panDirection === 'y', 'Pan direction must be vertical (y) or horizontal (x)');
+
   class DragArena extends (React.Component : typeof ReactComponent) {
     props: Props;
     state: State;
@@ -98,7 +102,7 @@ export function createDragArena(
           });
         }
         state.panResponder = createDragPanResponder(
-          state, dragContext, onStop
+          state, dragContext, panDirection, onStop
         );
         return state;
       });

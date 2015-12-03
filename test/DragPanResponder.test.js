@@ -15,15 +15,17 @@ describe('createDragPanResponder', () => {
   let createDragPanResponder;
   let dragContext;
 
+  let panDirection;
   let dragItem;
   let onStop;
-  let panResponder;
   let state;
 
   beforeEach(() => {
     dragItem = {
       id: '123',
     };
+
+    panDirection = 'y';
 
     state = {
       dragItem,
@@ -43,7 +45,7 @@ describe('createDragPanResponder', () => {
     };
 
     dragContext.getBaseLayout.returns({
-      x: 0, y: 0
+      x: 0, y: 0, width: 100, height: 200
     });
 
     onStop = sinon.stub();
@@ -53,6 +55,7 @@ describe('createDragPanResponder', () => {
     return createDragPanResponder(
       state,
       dragContext,
+      panDirection,
       onStop
     );
   }
@@ -81,50 +84,152 @@ describe('createDragPanResponder', () => {
 
     describe('onPanResponderMove', () => {
       let eventTracker;
+      let e;
+      let gestureState;
 
-      beforeEach(() => {
+      function setup() {
+        e = 'fake synthetic event';
         eventTracker = sinon.stub();
         sinon.stub(React.Animated, 'event').returns(eventTracker);
         handlers = subject().handlers;
-      });
+      }
 
       afterEach(() => {
         React.Animated.event.restore();
       });
 
-      it('tracks y axis movement via the pan state', () => {
-        const e = 'fake synthetic event';
-        const gestureState = {
-          moveY: 100
-        };
+      function itAllowsTracking() {
         handlers.onPanResponderMove(e, gestureState);
-        expect(React.Animated.event).to.have.been.called;
         expect(eventTracker).to.have.been.calledWith(
           e, gestureState
         );
-      });
+      }
 
-      describe('when the gesture moves beyond the upper bounds', () => {
-        it('stops tracking the pan', () => {
-          const e = 'fake synthetic event';
-          const gestureState = {
-            moveY: -5
-          };
-          handlers.onPanResponderMove(e, gestureState);
-          expect(eventTracker).not.to.have.been.called;
+      function itStopsTracking() {
+        handlers.onPanResponderMove(e, gestureState);
+        expect(eventTracker).not.to.have.been.called;
+      }
+
+      describe('x axis tracking', () => {
+        beforeEach(() => {
+          panDirection = 'x';
+          setup();
         });
 
-        describe('when the gesture is moving downwards', () => {
-          it('allows tracking', () => {
-            const e = 'fake';
-            const gestureState = {
-              moveY: -5,
-              vy: 3
+        it('tracks x axis movement via the pan state', () => {
+          gestureState = {
+            moveX: 100
+          };
+          handlers.onPanResponderMove(e, gestureState);
+          expect(React.Animated.event).to.have.been.calledWithExactly(
+            [
+              null,
+              {dx: state.pan.x},
+            ]
+          );
+          expect(eventTracker).to.have.been.calledWith(
+            e, gestureState
+          );
+        });
+
+        describe('bounding', () => {
+          describe('beyond left bound', () => {
+            it('stops tracking the pan', () => {
+              gestureState = {
+                moveX: -5
+              };
+
+              itStopsTracking();
+            });
+
+            describe('when moving to the right', () => {
+              it('allows tracking', () => {
+                gestureState = {
+                  moveX: -5,
+                  vx: 3
+                };
+
+                itAllowsTracking();
+              });
+            });
+          });
+
+          describe('beyond right bound', () => {
+            it('stops tracking the pan', () => {
+              gestureState = {
+                moveX: 105
+              };
+              itStopsTracking();
+            });
+
+            describe('when moving to the left', () => {
+              it('allows tracking', () => {
+                gestureState = {
+                  moveX: 105,
+                  vx: -3
+                };
+                itAllowsTracking();
+              });
+            });
+          });
+        });
+      });
+
+      describe('y axis tracking', () => {
+        beforeEach(() => {
+          panDirection = 'y';
+          setup();
+        });
+
+        it('tracks y axis movement via the pan state', () => {
+          gestureState = {
+            moveY: 100
+          };
+          itAllowsTracking();
+          expect(React.Animated.event).to.have.been.calledWithExactly(
+            [
+              null,
+              {dy: state.pan.y},
+            ]
+          );
+        });
+
+        describe('bounding', () => {
+          describe('beyond upper bounds', () => {
+            it('stops tracking the pan', () => {
+              gestureState = {
+                moveY: -5,
+              };
+              itStopsTracking();
+            });
+
+            describe('when the gesture is moving downwards', () => {
+              it('allows tracking', () => {
+                gestureState = {
+                  moveY: -5,
+                  vy: 3
+                };
+                itAllowsTracking();
+              });
+            });
+          });
+        });
+        describe('beyond lower bounds', () => {
+          it('stops tracking', () => {
+            gestureState = {
+              moveY: 205
             };
-            handlers.onPanResponderMove(e, gestureState);
-            expect(eventTracker).to.have.been.calledWithExactly(
-              e, gestureState
-            );
+            itStopsTracking();
+          });
+
+          describe('moving upwards', () => {
+            it('allows tracking', () => {
+              gestureState = {
+                moveY: 205,
+                vy: -1
+              };
+              itAllowsTracking();
+            });
           });
         });
       });

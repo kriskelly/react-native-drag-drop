@@ -13,12 +13,24 @@ import invariant from 'invariant';
 
 import type { State } from './DragArena';
 
-function setBounds(yTop, tracker) {
+function setBounds(bounds, tracker, direction) {
   return (e, gestureState) => {
-    const isBelowYTop = gestureState.moveY >= yTop;
-    const movingDownward = gestureState.vy > 0;
-    if (isBelowYTop || movingDownward) {
-      return tracker(e, gestureState);
+    if (direction === 'y') {
+      const aboveTop = gestureState.moveY < bounds.y;
+      const belowBottom = gestureState.moveY > (bounds.y + bounds.height);
+      const movingDownward = gestureState.vy > 0;
+      const movingUpward = gestureState.vy < 0;
+      if ((!aboveTop || movingDownward) && (!belowBottom || movingUpward)) {
+        return tracker(e, gestureState);
+      }
+    } else if (direction === 'x') {
+      const beyondLeft = gestureState.moveX < bounds.x;
+      const beyondRight = gestureState.moveX > (bounds.x + bounds.width);
+      const movingLeft = gestureState.vx < 0;
+      const movingRight = gestureState.vx > 0;
+      if ((!beyondLeft || movingRight) && (!beyondRight || movingLeft)) {
+        return tracker(e, gestureState);
+      }
     }
   };
 }
@@ -34,20 +46,33 @@ function setBounds(yTop, tracker) {
  */
 function createOnPanResponderMove(
   pan: Animated.ValueXY,
-  dragContext: DragContext
+  dragContext: DragContext,
+  panDirection: string
 ) {
-  return setBounds(
-    dragContext.getBaseLayout().y,
-    Animated.event([
+  let trackerArgs;
+  if (panDirection === 'y') {
+    trackerArgs = [
       null,
       {dy: pan.y}
-    ])
+    ];
+  } else {
+    trackerArgs = [
+      null,
+      {dx: pan.x}
+    ];
+  }
+
+  return setBounds(
+    dragContext.getBaseLayout(),
+    Animated.event(trackerArgs),
+    panDirection
   );
 }
 
 function createDragHandlers(
   state: State,
   dragContext: DragContext,
+  panDirection: string,
   onStop: Function
 ) {
   const { pan } = state;
@@ -68,7 +93,7 @@ function createDragHandlers(
       // console.log('diff: ', diff);
     },
 
-    onPanResponderMove: createOnPanResponderMove(pan, dragContext),
+    onPanResponderMove: createOnPanResponderMove(pan, dragContext, panDirection),
 
     onPanResponderRelease: () => {
       invariant(state.dragItem, 'Dragged todo must be specified before pan release.');
@@ -88,10 +113,11 @@ function createDragHandlers(
 export function createDragPanResponder(
   state: State,
   dragContext: DragContext,
+  panDirection: string,
   onStop: Function
 ): PanResponder {
   return PanResponder.create(createDragHandlers(
-    state, dragContext, onStop
+    state, dragContext, panDirection, onStop
   ));
 }
 

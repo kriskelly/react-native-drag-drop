@@ -1,4 +1,5 @@
 /* @flow */
+/* eslint react-jsx-scope: 0 */
 
 'use strict';
 
