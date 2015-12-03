@@ -130,6 +130,11 @@ export class DragContext {
     );
   }
 
+  getBaseLayout(): Layout {
+    invariant(this.baseLayout, 'Base layout must be set before accessing.');
+    return this.baseLayout;
+  }
+
   setBaseLayout(layout: Layout) {
     this.baseLayout = layout;
   }

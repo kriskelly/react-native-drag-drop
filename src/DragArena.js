@@ -12,7 +12,9 @@ const {
 
 import invariant from 'invariant';
 import { DragContext } from './DragContext';
+import { createDragPanResponder } from './DragPanResponder';
 import type { DragItem } from './DragContext';
+
 
 import type {
   NativeLayoutEvent,
@@ -21,7 +23,7 @@ import type {
 
 type Props = {};
 
-type State = {
+export type State = {
   currentDropZone: ?string,
   currentDropZoneEdge: ?string,
   dragItem: ?any,
@@ -90,70 +92,18 @@ export function createDragArena(
           x: dragContext.getDragItemOffset(dragItem, 'x'),
           y: dragContext.getDragItemOffset(dragItem, 'y'),
         });
-        state.panResponder = this.createPanResponder(pan);
+        const onStop = () => {
+          return dragContext.drop(this.props, this.state).then(() => {
+            this.stopDrag();
+          });
+        }
+        state.panResponder = createDragPanResponder(
+          state, dragContext, onStop
+        );
         return state;
       });
     }
 
-    /**
-     * Create a PanResponder callback for onPanResponderMove().
-     *
-     * Generally, this will track the movement of the pan in the Y
-     * direction.
-     *
-     * If the y movement goes beyond the bounds of the DragArena,
-     * movement should stop.
-     */
-    createOnPanResponderMove(pan: Animated.ValueXY) {
-      function setBounds(yTop, tracker) {
-        return (e, gestureState) => {
-          const isBelowYTop = gestureState.moveY >= yTop;
-          const movingDownward = gestureState.vy > 0;
-          if (isBelowYTop || movingDownward) {
-            return tracker(e, gestureState);
-          }
-        };
-      }
-
-      return setBounds(
-        dragContext.baseLayout.y,
-        Animated.event([
-          null,
-          {dy: pan.y}
-        ])
-      );
-    }
-
-    createPanResponder(pan: Animated.ValueXY): PanResponder {
-      const dragHandlers = {
-        onStartShouldSetPanResponder: () => {
-          return !!this.state.dragItem;
-        },
-        onMoveShouldSetPanResponder: () => {
-          return !!this.state.dragItem;
-        },
-        onPanResponderGrant: () => {
-          invariant(this.state.dragItem, 'Dragged todo must be specified before pan starts.');
-          // const diff = Math.abs(pan.y._offset - gestureState.moveY);
-          // console.log('diff: ', diff);
-        },
-        onPanResponderMove: this.createOnPanResponderMove(pan),
-        onPanResponderRelease: function() {
-          invariant(this.state.dragItem, 'Dragged todo must be specified before pan release.');
-          invariant(pan.y._offset >= 0, 'Pan offset must be >= 0 when dropping.');
-          return dragContext.drop(this.props, this.state).then(() => {
-            this.stopDrag();
-          });
-        }.bind(this),
-        onPanResponderTerminationRequest: function() {
-          return false;
-        }.bind(this),
-        onPanResponderTerminate: function() {
-          this.stopDrag();
-        }.bind(this)
-      };
-      return PanResponder.create(dragHandlers);
-    }
 
     watchPanChanges(pos: Position) {
       const dropZoneName = dragContext.getDropZoneFromYOffset(pos.y);

@@ -18,8 +18,14 @@ class TouchableHighlight extends React.Component {}
 class PickerIOS extends React.Component {}
 class PickerItem extends React.Component {}
 
-class PanResponder extends React.Component {
-  static create() {}
+class PanResponder {
+  constructor(handlers) {
+    this.handlers = handlers;
+  }
+
+  static create(handlers) {
+    return new PanResponder(handlers);
+  }
 }
 
 class Dimensions {
