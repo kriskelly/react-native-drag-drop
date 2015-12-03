@@ -79,10 +79,10 @@ export class DragContext {
   }
 
   /**
-   * Find the y position in absolute terms for a given dragItem.
+   * Find the position in absolute terms for a given dragItem.
    *
-   * This is used instead of gestureState.y0 when setting the pan
-   * offset, because y0 refers to the origin of the tap gesture.
+   * This is used instead of gestureState.x0/y0 when setting the pan
+   * offset, because those refer to the origin of the tap gesture.
    *
    * In order to prevent the drag shadow from jumping noticeably,
    * the pan offset needs to be set to the original absolute position
@@ -90,16 +90,17 @@ export class DragContext {
    *
    * @type TodoRecord
    */
-  getDragItemYOffset(dragItem: DragItem): number {
+  getDragItemOffset(dragItem: DragItem, direction: string): number {
     invariant(dragItem, 'Drag item not set!');
+    invariant(direction === 'y' || direction === 'x', 'Invalid direction (must be x or y)');
     const dragItemLayout = this.getDragItemLayout(dragItem);
     const layout = dragItemLayout.layout;
     const dropZoneName = dragItemLayout.dropZoneName;
     invariant(layout, 'Must have an original layout!');
     const dropZone = this.dropZones.get(dropZoneName);
     invariant(dropZone, 'Must have a valid drop zone!');
-    const yOffset = dropZone.layout.y + layout.y - dropZone.contentOffset.y;
-    return yOffset;
+    const offset = dropZone.layout[direction] + layout[direction] - dropZone.contentOffset[direction];
+    return offset;
   }
 
   getDropZoneFromYOffset(y: number): ?DropZoneName {
@@ -127,6 +128,11 @@ export class DragContext {
         contentOffset: {x: 0, y: 0},
       }
     );
+  }
+
+  getBaseLayout(): Layout {
+    invariant(this.baseLayout, 'Base layout must be set before accessing.');
+    return this.baseLayout;
   }
 
   setBaseLayout(layout: Layout) {

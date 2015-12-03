@@ -21,12 +21,20 @@ describe('createDragArena', () => {
   let BaseComponent;
   let ShadowComponent;
   let dragContext;
+  let createDragPanResponder;
+  let panDirection;
 
   beforeEach(() => {
+    createDragPanResponder = sinon.stub();
+
     ({createDragArena} = proxyquire('../src/DragArena', {
       'react-native': React,
       './DragContext': {
         DragContext, // No idea why this needs to be here, but it does.
+        '@noCallThru': true,
+      },
+      './DragPanResponder': {
+        createDragPanResponder,
         '@noCallThru': true,
       },
     }));
@@ -35,13 +43,15 @@ describe('createDragArena', () => {
     ShadowComponent = makeMockComponent(View);
 
     dragContext = createDragContext(() => {});
+    panDirection = 'y';
   });
 
   function subject() {
     const component = createDragArena(
       BaseComponent,
       ShadowComponent,
-      dragContext
+      dragContext,
+      panDirection
     );
 
     tree = sd.shallowRender(
@@ -143,7 +153,6 @@ describe('createDragArena', () => {
     describe('startDragHandler', () => {
       let dragItem;
       let instance;
-      let eventTracker;
 
       function startDrag() {
         startDragHandler(dragItem);
@@ -151,15 +160,13 @@ describe('createDragArena', () => {
       }
 
       beforeEach(() => {
-        eventTracker = sinon.stub();
-        React.Animated.event = sinon.stub().returns(eventTracker);
-        React.PanResponder.create = sinon.stub();
         dragItem = {
           id: '123',
         };
 
-        dragContext.setBaseLayout({y: 0});
+        // dragContext.setBaseLayout({y: 0});
 
+        dragContext.initDropZone('CALENDAR');
         dragContext.setDragItemLayout(
           'CALENDAR',
           dragItem,
@@ -167,8 +174,6 @@ describe('createDragArena', () => {
             y: 50
           }
         );
-
-        dragContext.initDropZone('CALENDAR');
       });
 
       it('saves the dragItem in state', () => {
@@ -181,6 +186,15 @@ describe('createDragArena', () => {
         expect(instance.state).to.have.property('currentDropZone', 'CALENDAR');
       });
 
+      it('saves the pan with the correct offset', () => {
+        sinon.stub(dragContext, 'getDragItemOffset')
+          .withArgs(dragItem, 'x').returns(123)
+          .withArgs(dragItem, 'y').returns(456);
+        startDrag();
+        expect(instance.state.pan.x).to.have.property('_offset', 123);
+        expect(instance.state.pan.y).to.have.property('_offset', 456);
+      })
+
       it('does not explode if the dragItem changed in between caching the layout and starting the drag', () => {
         // Same ID but different object reference.
         dragItem = {
@@ -191,61 +205,13 @@ describe('createDragArena', () => {
       });
 
       it('sets up the pan responder for dragging', () => {
+        const responder = {fake: 'responder'};
+        createDragPanResponder.returns(responder);
         startDrag();
-        expect(React.PanResponder.create).to.have.been.called;
-      });
-
-      describe('PanResponder', () => {
-        let handlers;
-
-        beforeEach(() => {
-          startDrag();
-          handlers = React.PanResponder.create.args[0][0];
-        });
-
-        it('responds on start/move', () => {
-          expect(handlers.onStartShouldSetPanResponder()).to.be.true;
-          expect(handlers.onMoveShouldSetPanResponder()).to.be.true;
-        });
-
-        describe('onPanResponderMove', () => {
-          it('tracks y axis movement via the pan state', () => {
-            const e = 'fake synthetic event';
-            const gestureState = {
-              moveY: 100
-            };
-            handlers.onPanResponderMove(e, gestureState);
-            expect(React.Animated.event).to.have.been.called;
-            expect(eventTracker).to.have.been.calledWith(
-              e, gestureState
-            );
-          });
-
-          describe('when the gesture moves beyond the upper bounds', () => {
-            it('stops tracking the pan', () => {
-              const e = 'fake synthetic event';
-              const gestureState = {
-                moveY: -5
-              };
-              handlers.onPanResponderMove(e, gestureState);
-              expect(eventTracker).not.to.have.been.called;
-            });
-
-            describe('when the gesture is moving downwards', () => {
-              it('allows tracking', () => {
-                const e = 'fake';
-                const gestureState = {
-                  moveY: -5,
-                  vy: 3
-                };
-                handlers.onPanResponderMove(e, gestureState);
-                expect(eventTracker).to.have.been.calledWithExactly(
-                  e, gestureState
-                );
-              });
-            });
-          });
-        });
+        expect(instance.state.panResponder).to.equal(responder);
+        expect(createDragPanResponder).to.have.been.calledWithExactly(
+          instance.state, dragContext, 'y', sinon.match.func
+        );
       });
     });
   });

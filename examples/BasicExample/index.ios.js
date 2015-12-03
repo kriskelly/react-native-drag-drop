@@ -121,7 +121,7 @@ const DragArena = createDragArena(React.createClass({
       </View>
     );
   }
-}), DragShadow, dragContext);
+}), DragShadow, dragContext, 'x');
 
 const styles = StyleSheet.create({
   container: {
