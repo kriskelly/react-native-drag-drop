@@ -110,21 +110,25 @@ export function createDragArena(
 
 
     watchPanChanges(pos: Position) {
-      const dropZoneName = dragContext.getDropZoneFromYOffset(pos.y);
-
-      if (dropZoneName) {
-        const edge = dragContext.getDropZoneEdge(pos, dropZoneName);
+      const dropZone = dragContext.getDropZone(pos);
+      if (dropZone) {
+        const edge = dragContext.getDropZoneEdge(pos, dropZone);
         if (edge !== this.state.currentDropZoneEdge) {
           this.setState({
             currentDropZoneEdge: edge
           });
         }
 
-        if (dropZoneName !== this.state.currentDropZone) {
+        if (dropZone.name !== this.state.currentDropZone) {
           this.setState({
-            currentDropZone: dropZoneName,
+            currentDropZone: dropZone.name,
           });
         }
+      } else {
+        this.setState({
+          currentDropZone: null,
+          currentDropZoneEdge: null,
+        });
       }
     }
 

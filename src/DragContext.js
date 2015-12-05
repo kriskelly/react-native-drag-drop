@@ -3,6 +3,7 @@
 'use strict';
 
 import invariant from 'invariant';
+import findKey from 'lodash.findkey';
 
 import type {
   ContentOffset,
@@ -21,12 +22,29 @@ export type DragItem = {
 export const EdgeTypes = {
   TOP: 'TOP',
   BOTTOM: 'BOTTOM',
+  LEFT: 'LEFT',
+  RIGHT: 'RIGHT',
 };
 
 
 type OnDrop = (props: Object, state: Object) => Promise;
 
 export const EDGE_THRESHOLD_POINTS = 10;
+
+function positionIsWithinBounds(pos: Position, layout: Layout) {
+  const top = layout.y;
+  const bottom = top + layout.height;
+  const left = layout.x;
+  const right = left + layout.width;
+  if (pos.y >= top &&
+    pos.y <= bottom &&
+    pos.x >= left &&
+    pos.x <= right) {
+    return true;
+  } else {
+    return false;
+  }
+}
 
 export class DragContext {
   baseLayout: Layout;
@@ -47,15 +65,44 @@ export class DragContext {
    * @param  DropZone dropZone: DropZone
    * @return DropZoneEdge
    */
-  getDropZoneEdge(pos: Position, dropZoneName: DropZoneName): DropZoneEdge {
-    const layout = this.getLayout(dropZoneName);
-    const topThreshold = layout.y + EDGE_THRESHOLD_POINTS;
-    const bottomThreshold = layout.y + layout.height - EDGE_THRESHOLD_POINTS;
-    if (pos.y <= topThreshold) {
-      return EdgeTypes.TOP;
-    } else if (pos.y >= bottomThreshold) {
-      return EdgeTypes.BOTTOM;
+  getDropZoneEdge(pos: Position, dropZone: DropZone): ?DropZoneEdge {
+    const layout = dropZone.layout;
+    const leftBounds = {
+      ...layout,
+      width: layout.x + EDGE_THRESHOLD_POINTS
+    };
+
+    const rightBounds = {
+      ...layout,
+      x: layout.x + layout.width - EDGE_THRESHOLD_POINTS,
+      width: EDGE_THRESHOLD_POINTS,
+    };
+
+    const topBounds = {
+      ...layout,
+      height: EDGE_THRESHOLD_POINTS,
     }
+
+    const bottomBounds = {
+      ...layout,
+      y: layout.y + layout.height - EDGE_THRESHOLD_POINTS,
+      height: EDGE_THRESHOLD_POINTS,
+    };
+
+    const allBounds = {
+      // $FlowFixMe
+      [EdgeTypes.TOP]: topBounds,
+      // $FlowFixMe
+      [EdgeTypes.BOTTOM]: bottomBounds,
+      // $FlowFixMe
+      [EdgeTypes.LEFT]: leftBounds,
+      // $FlowFixMe
+      [EdgeTypes.RIGHT]: rightBounds,
+    };
+
+    return findKey(allBounds, (bounds) => {
+      return positionIsWithinBounds(pos, bounds);
+    });
   }
 
   drop(props: Object, state: Object): Promise {
@@ -103,16 +150,16 @@ export class DragContext {
     return offset;
   }
 
-  getDropZoneFromYOffset(y: number): ?DropZoneName {
-    // Naive implementation.
-    // This assumes that the drop zones are ever only
-    // stacked vertically and non-overlapping.
-
+  /**
+   * Get the drop zone corresponding to a set of coordinates.
+   *
+   * The major assumption behind this implementation is that
+   * drop zones are non-overlapping.
+   */
+  getDropZone(pos: Position): ?DropZone {
     for (let dropZone of this.dropZones.values()) {
-      const top = dropZone.layout.y;
-      const bottom = top + dropZone.layout.height;
-      if (y >= top && y <= bottom) {
-        return dropZone.name;
+      if (positionIsWithinBounds(pos, dropZone.layout)) {
+        return dropZone;
       }
     }
 

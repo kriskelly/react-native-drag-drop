@@ -105,69 +105,112 @@ describe('DragContext', () => {
   });
 
   describe('#getDropZoneEdge', () => {
+    let dropZone;
+
     beforeEach(() => {
       context.initDropZone('fake');
-      context.setLayout('fake', {x: 0, y: 100, width: 100, height: 1000});
+      dropZone = context.dropZones.get('fake');
+
+      context.setLayout('fake', {
+        x: 0,
+        y: 100,
+        width: 100,
+        height: 1000
+      });
     });
 
     describe('when position is within the top edge threshold', () => {
       it('returns the top edge', () => {
         const edge = context.getDropZoneEdge(
           {x: 0, y: 100 + EDGE_THRESHOLD_POINTS},
-          'fake'
+          dropZone
         );
         expect(edge).to.equal(EdgeTypes.TOP);
       });
     });
 
     describe('when position is within the bottom edge threshold', () => {
-      it('return the bottom edge', () => {
+      it('returns the bottom edge', () => {
         const edge = context.getDropZoneEdge(
           {x: 0, y: 1100 - EDGE_THRESHOLD_POINTS},
-          'fake'
+          dropZone
         );
         expect(edge).to.equal(EdgeTypes.BOTTOM);
       });
     });
 
-    describe('otherwise', () => {
+    describe('when position is within left edge', () => {
+      it('returns the left edge', () => {
+        const edge = context.getDropZoneEdge(
+          {x: 5, y: 200},
+          dropZone
+        );
+        expect(edge).to.equal(EdgeTypes.LEFT);
+      });
+    });
+
+    describe('when position is within right edge', () => {
+      it('returns the right edge', () => {
+        const edge = context.getDropZoneEdge(
+          {x: 95, y: 200},
+          dropZone
+        );
+        expect(edge).to.equal(EdgeTypes.RIGHT);
+      });
+    });
+
+    describe('when the position is outside the drop zone entirely', () => {
       it('returns undefined', () => {
         const edge = context.getDropZoneEdge(
-          {x: 0, y: 500},
-          'fake'
+          {x: 0, y: 1200},
+          dropZone
+        );
+        expect(edge).not.to.exist;
+      });
+    });
+
+    describe('when position is not near an edge', () => {
+      it('returns undefined', () => {
+        const edge = context.getDropZoneEdge(
+          {x: 50, y: 500},
+          dropZone
         );
         expect(edge).not.to.exist;
       });
     });
   });
 
-  describe('#getDropZoneFromYOffset', () => {
+  describe('#getDropZone', () => {
     beforeEach(() => {
       context.initDropZone('foo');
       context.initDropZone('bar');
       context.setLayout('foo', {
         y: 0,
         x: 0,
-        width: 0,
+        width: 10,
         height: 5,
       });
       context.setLayout('bar', {
         y: 100,
-        x: 0,
-        width: 0,
+        x: 10,
+        width: 20,
         height: 200,
       });
     });
 
-    it('finds the last drop zone with a y offset < y', () => {
-      const dz = context.getDropZoneFromYOffset(150);
+    it('finds the drop zone at the correct x/y position', () => {
+      const dz = context.getDropZone({
+        x: 15,
+        y: 150
+      });
       expect(dz).to.exist;
-      expect(dz).to.equal('bar');
+      expect(dz).to.equal(context.dropZones.get('bar'));
     });
 
-    describe('when y < minimum layout offset', () => {
-      it('finds the drop zone with the lowest layout offset');
-    });
+    it('returns null when there is no corresponding drop zone', () => {
+      const dz = context.getDropZone({x: 15, y: 500});
+      expect(dz).to.be.null;
+    })
   });
 
   describe('#initDropZone', () => {

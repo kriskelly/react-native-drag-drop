@@ -26,7 +26,7 @@ export type DragShadowStyle = {
   height: AnimatedStyle,
 };
 
-export type DropZoneEdge = string | void;
+export type DropZoneEdge = string;
 
 export type DropZoneName = string;
 

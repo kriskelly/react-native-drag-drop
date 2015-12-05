@@ -99,54 +99,84 @@ describe('createDragArena', () => {
     describe('#watchPanChanges', () => {
       let instance;
 
-      beforeEach(() => {
-        instance = tree.getMountedInstance();
-        sinon.stub(dragContext, 'getDropZoneFromYOffset')
-          .onFirstCall().returns('foo')
-          .onSecondCall().returns('foo')
-          .onThirdCall().returns('bar');
-        sinon.spy(instance, 'setState');
+      function watchPanChanges() {
+        instance.watchPanChanges({y: 3});
+      }
 
-        sinon.stub(dragContext, 'getDropZoneEdge');
-      });
+      describe('when moving between drop zones', () => {
 
-      it('sets the drop zone state', () => {
-        instance.watchPanChanges({y: 3});
-        expect(instance.setState).to.have.been.calledWith(
-          { currentDropZone: 'foo'}
-        );
-      });
+        beforeEach(() => {
+          instance = tree.getMountedInstance();
+          sinon.stub(dragContext, 'getDropZone')
+            .onFirstCall().returns({name: 'foo'})
+            .onSecondCall().returns({name: 'foo'})
+            .onThirdCall().returns({name: 'bar'});
+          sinon.spy(instance, 'setState');
 
-      it('only sets the state when the drop zone changes (performance)', () => {
-        instance.watchPanChanges({y: 3});
-        instance.watchPanChanges({y: 3});
-        expect(instance.setState.withArgs({currentDropZone: 'foo'})).to.have.been.calledOnce;
-        instance.watchPanChanges({y: 3});
-        expect(instance.setState).to.have.been.calledWith({
-          currentDropZone: 'bar'
+          sinon.stub(dragContext, 'getDropZoneEdge');
+        });
+
+        it('sets the drop zone state', () => {
+          watchPanChanges();
+          expect(instance.setState).to.have.been.calledWith(
+            { currentDropZone: 'foo'}
+          );
+        });
+
+        it('only sets the state when the drop zone changes (performance)', () => {
+          watchPanChanges();
+          watchPanChanges();
+          expect(instance.setState.withArgs({currentDropZone: 'foo'})).to.have.been.calledOnce;
+          watchPanChanges();
+          expect(instance.setState).to.have.been.calledWith({
+            currentDropZone: 'bar'
+          });
+        });
+
+        it('detects the edge of the drop zone', () => {
+          dragContext.getDropZoneEdge.returns('TOP');
+          watchPanChanges();
+          expect(instance.setState.withArgs({
+            currentDropZoneEdge: 'TOP'
+          })).to.have.been.calledOnce;
+        });
+
+        it('only sets the state when the drop zone edge changes', () => {
+          dragContext.getDropZoneEdge
+            .onFirstCall().returns('TOP')
+            .onSecondCall().returns('TOP')
+            .onThirdCall().returns(null);
+
+          watchPanChanges();
+          watchPanChanges();
+
+          expect(instance.setState.withArgs({
+            currentDropZoneEdge: 'TOP'
+          })).to.have.been.calledOnce;
         });
       });
 
-      it('detects the edge of the drop zone', () => {
-        dragContext.getDropZoneEdge.returns('TOP');
-        instance.watchPanChanges({y: 3});
-        expect(instance.setState.withArgs({
-          currentDropZoneEdge: 'TOP'
-        })).to.have.been.calledOnce;
-      });
+      describe('when moving outside any particular drop zone', () => {
+        beforeEach(() => {
+          instance = tree.getMountedInstance();
+          sinon.stub(dragContext, 'getDropZone')
+            .onFirstCall().returns({name: 'foo'})
+            .onSecondCall().returns(null);
+          sinon.spy(instance, 'setState');
 
-      it('only sets the state when the drop zone edge changes', () => {
-        dragContext.getDropZoneEdge
-          .onFirstCall().returns('TOP')
-          .onSecondCall().returns('TOP')
-          .onThirdCall().returns(null);
+          sinon.stub(dragContext, 'getDropZoneEdge');
+        });
 
-        instance.watchPanChanges({y: 3});
-        instance.watchPanChanges({y: 3});
-
-        expect(instance.setState.withArgs({
-          currentDropZoneEdge: 'TOP'
-        })).to.have.been.calledOnce;
+        it('nullifies the current drop zone', () => {
+          watchPanChanges();
+          expect(instance.setState.withArgs({currentDropZone: 'foo'}))
+            .to.have.been.calledOnce;
+          watchPanChanges();
+          expect(instance.setState.withArgs({
+            currentDropZone: null,
+            currentDropZoneEdge: null,
+          })).to.have.been.calledOnce;
+        });
       });
     });
 
