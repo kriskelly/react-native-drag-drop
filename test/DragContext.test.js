@@ -7,21 +7,18 @@ import sinon from 'sinon';
 import {
   createDragContext,
   EdgeTypes,
-  EDGE_THRESHOLD_POINTS,
 } from '../src/DragContext';
 
 describe('DragContext', () => {
   let context;
+  let edgeThreshold;
   let onDrop;
 
   beforeEach(() => {
+    edgeThreshold = 15;
     onDrop = sinon.stub();
-    context = subject(onDrop);
+    context = createDragContext(onDrop, edgeThreshold);
   });
-
-  function subject(onDrop) {
-    return createDragContext(onDrop);
-  }
 
   describe('#drop', () => {
     it('calls the callback', () => {
@@ -122,7 +119,7 @@ describe('DragContext', () => {
     describe('when position is within the top edge threshold', () => {
       it('returns the top edge', () => {
         const edge = context.getDropZoneEdge(
-          {x: 0, y: 100 + EDGE_THRESHOLD_POINTS},
+          {x: 0, y: 100 + edgeThreshold},
           dropZone
         );
         expect(edge).to.equal(EdgeTypes.TOP);
@@ -132,7 +129,7 @@ describe('DragContext', () => {
     describe('when position is within the bottom edge threshold', () => {
       it('returns the bottom edge', () => {
         const edge = context.getDropZoneEdge(
-          {x: 0, y: 1100 - EDGE_THRESHOLD_POINTS},
+          {x: 0, y: 1100 - edgeThreshold},
           dropZone
         );
         expect(edge).to.equal(EdgeTypes.BOTTOM);

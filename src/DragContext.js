@@ -29,8 +29,6 @@ export const EdgeTypes = {
 
 type OnDrop = (props: Object, state: Object) => Promise;
 
-export const EDGE_THRESHOLD_POINTS = 10;
-
 function positionIsWithinBounds(pos: Position, layout: Layout) {
   const top = layout.y;
   const bottom = top + layout.height;
@@ -50,9 +48,11 @@ export class DragContext {
   baseLayout: Layout;
   dragItemLayouts: Map<string, DragItemLayout>;
   dropZones: Map<DropZoneName, DropZone>;
+  edgeThreshold: number;
   onDrop: (props: Object, state: Object, context: DragContext) => Promise;
 
-  constructor(onDrop: OnDrop) {
+  constructor(onDrop: OnDrop, edgeThreshold: number) {
+    this.edgeThreshold = edgeThreshold;
     this.onDrop = onDrop;
     this.dropZones = new Map();
     this.dragItemLayouts = new Map();
@@ -69,24 +69,24 @@ export class DragContext {
     const layout = dropZone.layout;
     const leftBounds = {
       ...layout,
-      width: layout.x + EDGE_THRESHOLD_POINTS
+      width: layout.x + this.edgeThreshold
     };
 
     const rightBounds = {
       ...layout,
-      x: layout.x + layout.width - EDGE_THRESHOLD_POINTS,
-      width: EDGE_THRESHOLD_POINTS,
+      x: layout.x + layout.width - this.edgeThreshold,
+      width: this.edgeThreshold,
     };
 
     const topBounds = {
       ...layout,
-      height: EDGE_THRESHOLD_POINTS,
+      height: this.edgeThreshold,
     }
 
     const bottomBounds = {
       ...layout,
-      y: layout.y + layout.height - EDGE_THRESHOLD_POINTS,
-      height: EDGE_THRESHOLD_POINTS,
+      y: layout.y + layout.height - this.edgeThreshold,
+      height: this.edgeThreshold,
     };
 
     const allBounds = {
@@ -216,6 +216,6 @@ export class DragContext {
   }
 }
 
-export function createDragContext(onDrop: OnDrop): DragContext {
-  return new DragContext(onDrop);
+export function createDragContext(onDrop: OnDrop, edgeThreshold: number = 10): DragContext {
+  return new DragContext(onDrop, edgeThreshold);
 }
