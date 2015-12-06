@@ -75,11 +75,11 @@ export function createAutoscrollable(Component: ReactClass): ReactClass {
       const contentOffset = this.context.dragContext.getContentOffset(
         this.props.dropZoneName
       );
-      const yOffset = contentOffset.y;
-      if (yOffset <= 0) {
+      if (contentOffset.y <= 0) {
         this.stopAutoscroll();
       }
-      let dy;
+      let dy = 0;
+      let dx = 0;
       switch(dropZoneEdge) {
         case EdgeTypes.TOP: {
           // Move up
@@ -90,12 +90,23 @@ export function createAutoscrollable(Component: ReactClass): ReactClass {
           dy = AUTOSCROLL_POS_INCREMENT;
           break;
         }
+        case EdgeTypes.LEFT: {
+          dx = 0 - AUTOSCROLL_POS_INCREMENT;
+          break;
+        }
+        case EdgeTypes.RIGHT: {
+          dx = AUTOSCROLL_POS_INCREMENT;
+          break;
+        }
         default: {
-          throw 'invalid edge type!';
+          throw 'invalid edge type: ', dropZoneEdge;
         }
       }
 
-      this.scrollableRef && this.scrollableRef.scrollTo(yOffset + dy);
+      this.scrollableRef && this.scrollableRef.scrollTo(
+        contentOffset.y + dy,
+        contentOffset.x + dx
+      );
       this.forceUpdate();
     }
 

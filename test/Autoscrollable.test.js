@@ -197,7 +197,7 @@ describe('createAutoscrollable', () => {
 
     describe('startAutoscroll', () => {
       beforeEach(() => {
-        dragContext.setContentOffset('foobar', {x: 0, y: 100});
+        dragContext.setContentOffset('foobar', {x: 50, y: 100});
       });
 
       it('creates an interval', () => {
@@ -228,6 +228,32 @@ describe('createAutoscrollable', () => {
           it('scrolls up a little bit', () => {
             expect(scrollable.scrollTo).to.have.been.calledWith(
               100 - 20
+            );
+          });
+        });
+
+        describe('scrolling left', () => {
+          beforeEach(() => {
+            instance.startAutoscroll('LEFT');
+            clock.tick(400);
+          });
+
+          it('scrolls left a bit', () => {
+            expect(scrollable.scrollTo).to.have.been.calledWithExactly(
+              100, 50 - 20
+            );
+          });
+        });
+
+        describe('scrolling right', () => {
+          beforeEach(() => {
+            instance.startAutoscroll('RIGHT');
+            clock.tick(400);
+          });
+
+          it('scrolls right', () => {
+            expect(scrollable.scrollTo).to.have.been.calledWithExactly(
+              100, 50 + 20
             );
           });
         });
