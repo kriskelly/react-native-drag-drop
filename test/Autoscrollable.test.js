@@ -13,6 +13,10 @@ import { DragContext } from '../src/DragContext';
 const { View } = React;
 
 describe('createAutoscrollable', () => {
+  beforeEach(() => {
+    global.__DEV__ = false;
+  });
+
   let tree;
   let vdom;
   let instance;
@@ -196,9 +200,36 @@ describe('createAutoscrollable', () => {
     });
 
     describe('startAutoscroll', () => {
+      const contentWidth = 100;
+      const  contentHeight = 500;
       beforeEach(() => {
         dragContext.setContentOffset('foobar', {x: 50, y: 100});
+        dragContext.setLayout('foobar', {
+          x: 0,
+          y: 0,
+          height: contentHeight,
+          width: contentWidth,
+        });
       });
+
+      function scrollOnce(direction) {
+        instance.startAutoscroll(direction);
+        clock.tick(400);
+      }
+
+      function itStopsScrolling(direction, contentOffset) {
+        describe('scrolling past the ' + direction + ' bound', () => {
+          beforeEach(() => {
+            dragContext.setContentOffset('foobar', contentOffset);
+            sinon.stub(instance, 'stopAutoscroll');
+            clock.tick(400);
+          });
+
+          it('stops the autoscrolling', () => {
+            expect(instance.stopAutoscroll).to.have.been.called;
+          });
+        });
+      }
 
       it('creates an interval', () => {
         instance.startAutoscroll('BOTTOM');
@@ -208,8 +239,7 @@ describe('createAutoscrollable', () => {
       describe('when the interval runs', () => {
         describe('scrolling down', () => {
           beforeEach(() => {
-            instance.startAutoscroll('BOTTOM');
-            clock.tick(400);
+            scrollOnce('BOTTOM');
           });
 
           it('scrolls down a little bit', () => {
@@ -217,12 +247,13 @@ describe('createAutoscrollable', () => {
               100 + 20
             );
           });
+
+          itStopsScrolling('BOTTOM', {x: 0, y: contentHeight});
         });
 
         describe('scrolling up', () => {
           beforeEach(() => {
-            instance.startAutoscroll('TOP');
-            clock.tick(400);
+            scrollOnce('TOP');
           });
 
           it('scrolls up a little bit', () => {
@@ -230,12 +261,13 @@ describe('createAutoscrollable', () => {
               100 - 20
             );
           });
+
+          itStopsScrolling('TOP', {x: 0, y: 0});
         });
 
         describe('scrolling left', () => {
           beforeEach(() => {
-            instance.startAutoscroll('LEFT');
-            clock.tick(400);
+            scrollOnce('LEFT');
           });
 
           it('scrolls left a bit', () => {
@@ -243,12 +275,13 @@ describe('createAutoscrollable', () => {
               100, 50 - 20
             );
           });
+
+          itStopsScrolling('LEFT', {x: 0, y: contentHeight / 2});
         });
 
         describe('scrolling right', () => {
           beforeEach(() => {
-            instance.startAutoscroll('RIGHT');
-            clock.tick(400);
+            scrollOnce('RIGHT');
           });
 
           it('scrolls right', () => {
@@ -256,19 +289,8 @@ describe('createAutoscrollable', () => {
               100, 50 + 20
             );
           });
-        });
 
-        describe('scrolling past the top bound', () => {
-          beforeEach(() => {
-            dragContext.setContentOffset('foobar', {x: 0, y: 0});
-            sinon.stub(instance, 'stopAutoscroll');
-            instance.startAutoscroll('TOP');
-            clock.tick(400);
-          });
-
-          it('stops the autoscrolling', () => {
-            expect(instance.stopAutoscroll).to.have.been.called;
-          });
+          itStopsScrolling('RIGHT', {x: contentWidth, y: contentHeight / 2});
         });
       });
     });

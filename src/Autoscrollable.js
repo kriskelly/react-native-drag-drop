@@ -75,27 +75,44 @@ export function createAutoscrollable(Component: ReactClass): ReactClass {
       const contentOffset = this.context.dragContext.getContentOffset(
         this.props.dropZoneName
       );
-      if (contentOffset.y <= 0) {
-        this.stopAutoscroll();
-      }
+      const layout = this.context.dragContext.getLayout(
+        this.props.dropZoneName
+      );
+
       let dy = 0;
       let dx = 0;
       switch(dropZoneEdge) {
         case EdgeTypes.TOP: {
           // Move up
           dy = 0 - AUTOSCROLL_POS_INCREMENT;
+          if (contentOffset.y <= layout.y) {
+            this.stopAutoscroll();
+            return;
+          }
           break;
         }
         case EdgeTypes.BOTTOM: {
           dy = AUTOSCROLL_POS_INCREMENT;
+          if (contentOffset.y >= (layout.y + layout.height)) {
+            this.stopAutoscroll();
+            return;
+          }
           break;
         }
         case EdgeTypes.LEFT: {
           dx = 0 - AUTOSCROLL_POS_INCREMENT;
+          if (contentOffset.x <= layout.x) {
+            this.stopAutoscroll();
+            return;
+          }
           break;
         }
         case EdgeTypes.RIGHT: {
           dx = AUTOSCROLL_POS_INCREMENT;
+          if (contentOffset.x >= (layout.x + layout.width)) {
+            this.stopAutoscroll();
+            return;
+          }
           break;
         }
         default: {
@@ -103,9 +120,13 @@ export function createAutoscrollable(Component: ReactClass): ReactClass {
         }
       }
 
+      const destY = contentOffset.y + dy;
+      const destX = contentOffset.x + dx;
+      if (__DEV__) {
+        console.log(`Autoscrollable: scrollTo(${destY}, ${destX})`);
+      }
       this.scrollableRef && this.scrollableRef.scrollTo(
-        contentOffset.y + dy,
-        contentOffset.x + dx
+        destY, destX
       );
       this.forceUpdate();
     }
@@ -120,12 +141,18 @@ export function createAutoscrollable(Component: ReactClass): ReactClass {
      */
     startAutoscroll(dropZoneEdge: DropZoneEdge) {
       this.stopAutoscroll();
+      if (__DEV__) {
+        console.log(`Autoscrollable: startAutoscroll(${dropZoneEdge})`);
+      }
       this.autoscrollInterval = setInterval(() => {
         this._doAutoscroll(dropZoneEdge);
       }, AUTOSCROLL_TIME_INTERVAL);
     }
 
     stopAutoscroll() {
+      if (__DEV__) {
+        console.log('Autoscrollable: stopAutoscroll()');
+      }
       this.autoscrollInterval && clearInterval(this.autoscrollInterval);
       this.autoscrollInterval = null;
     }
