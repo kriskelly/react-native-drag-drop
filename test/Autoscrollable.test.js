@@ -9,7 +9,7 @@ import sd from 'skin-deep';
 import { makeMockComponent } from './makeMockComponent';
 
 import React from './__mocks__/react-native';
-import { DragContext } from '../src/DragContext';
+import { createDragContext, DragContext } from '../src/DragContext';
 const { View } = React;
 
 describe('createAutoscrollable', () => {
@@ -50,7 +50,7 @@ describe('createAutoscrollable', () => {
       scrollTo: sinon.stub()
     };
 
-    dragContext = new DragContext(() => {}, 10);
+    dragContext = createDragContext(() => {});
     dragContext.initDropZone('foobar');
 
     BaseComponent = makeMockComponent(View);

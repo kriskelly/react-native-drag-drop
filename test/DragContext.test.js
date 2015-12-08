@@ -16,7 +16,9 @@ describe('DragContext', () => {
 
   beforeEach(() => {
     onDrop = sinon.stub();
-    context = createDragContext(onDrop, edgeThreshold);
+    context = createDragContext(onDrop, {
+      edgeThreshold
+    });
   });
 
   describe('#drop', () => {
