@@ -18,7 +18,7 @@ describe('createDragPanResponder', () => {
   let panDirection;
   let dragItem;
   let onStop;
-  let state;
+  let instance;
 
   beforeEach(() => {
     dragItem = {
@@ -27,9 +27,11 @@ describe('createDragPanResponder', () => {
 
     panDirection = 'y';
 
-    state = {
-      dragItem,
-      pan: new React.Animated.ValueXY()
+    instance = {
+      state: {
+        dragItem,
+        pan: new React.Animated.ValueXY(),
+      }
     };
 
     ({createDragPanResponder} = proxyquire('../src/DragPanResponder', {
@@ -53,7 +55,7 @@ describe('createDragPanResponder', () => {
 
   function subject() {
     return createDragPanResponder(
-      state,
+      instance,
       dragContext,
       panDirection,
       onStop
@@ -124,7 +126,7 @@ describe('createDragPanResponder', () => {
           expect(React.Animated.event).to.have.been.calledWithExactly(
             [
               null,
-              {dx: state.pan.x},
+              {dx: instance.state.pan.x},
             ]
           );
           expect(eventTracker).to.have.been.calledWith(
@@ -189,7 +191,7 @@ describe('createDragPanResponder', () => {
           expect(React.Animated.event).to.have.been.calledWithExactly(
             [
               null,
-              {dy: state.pan.y},
+              {dy: instance.state.pan.y},
             ]
           );
         });

@@ -240,7 +240,7 @@ describe('createDragArena', () => {
         startDrag();
         expect(instance.state.panResponder).to.equal(responder);
         expect(createDragPanResponder).to.have.been.calledWithExactly(
-          instance.state, dragContext, 'y', sinon.match.func
+          instance, dragContext, 'y', sinon.match.func
         );
       });
     });

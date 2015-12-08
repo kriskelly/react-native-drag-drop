@@ -96,16 +96,19 @@ export function createDragArena(
           x: dragContext.getDragItemOffset(dragItem, 'x'),
           y: dragContext.getDragItemOffset(dragItem, 'y'),
         });
-        const onStop = () => {
-          return dragContext.drop(this.props, this.state).then(() => {
-            this.stopDrag();
-          });
-        }
-        state.panResponder = createDragPanResponder(
-          state, dragContext, panDirection, onStop
-        );
         return state;
       });
+
+      const onStop = () => {
+        return dragContext.drop(this.props, this.state).then(() => {
+          this.stopDrag();
+        });
+      }
+      this.setState({
+        panResponder: createDragPanResponder(
+          this, dragContext, panDirection, onStop
+        )
+      })
     }
 
 

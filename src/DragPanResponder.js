@@ -70,34 +70,36 @@ function createOnPanResponderMove(
 }
 
 function createDragHandlers(
-  state: State,
+  instance: ReactComponent,
   dragContext: DragContext,
   panDirection: string,
   onStop: Function
 ) {
-  const { pan } = state;
-  invariant(pan, 'Pan must be initialized before creating drag handlers.');
+  invariant(instance.state.pan, 'Pan must be initialized before creating drag handlers.');
 
   return {
     onStartShouldSetPanResponder: () => {
-      return !!state.dragItem;
+      return !!instance.state.dragItem;
     },
 
     onMoveShouldSetPanResponder: () => {
-      return !!state.dragItem;
+      return !!instance.state.dragItem;
     },
 
     onPanResponderGrant: () => {
-      invariant(state.dragItem, 'Dragged todo must be specified before pan starts.');
+      invariant(instance.state.dragItem, 'Dragged todo must be specified before pan starts.');
       // const diff = Math.abs(pan.y._offset - gestureState.moveY);
       // console.log('diff: ', diff);
     },
 
-    onPanResponderMove: createOnPanResponderMove(pan, dragContext, panDirection),
+    onPanResponderMove: createOnPanResponderMove(instance.state.pan, dragContext, panDirection),
 
     onPanResponderRelease: () => {
-      invariant(state.dragItem, 'Dragged todo must be specified before pan release.');
-      invariant(pan && pan.y._offset >= 0, 'Pan y offset must be >= 0 when dropping.');
+      invariant(instance.state.dragItem,
+        'Dragged todo must be specified before pan release.');
+      invariant(
+        instance.state.pan && instance.state.pan.y._offset >= 0,
+        'Pan y offset must be >= 0 when dropping.');
       return onStop();
     },
 
@@ -110,14 +112,30 @@ function createDragHandlers(
   }
 }
 
+/**
+ * Create a PanResponder for the drag operation.
+ *
+ * Used directly by DragArena and makes assumptions about state.
+ *
+ * Note that this function receives the mounted React
+ * component instance instead of the component state,
+ * because apparently state on its own is not a stable object
+ * reference that can be checked for changes.
+ *
+ * @param  ReactComponent instance
+ * @param  DragContext dragContext
+ * @param  string panDirection
+ * @param  function onStop
+ * @return PanResponder
+ */
 export function createDragPanResponder(
-  state: State,
+  instance: ReactComponent,
   dragContext: DragContext,
   panDirection: string,
   onStop: Function
 ): PanResponder {
   return PanResponder.create(createDragHandlers(
-    state, dragContext, panDirection, onStop
+    instance, dragContext, panDirection, onStop
   ));
 }
 
