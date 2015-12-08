@@ -50,7 +50,7 @@ describe('createAutoscrollable', () => {
       scrollTo: sinon.stub()
     };
 
-    dragContext = new DragContext(() => {});
+    dragContext = new DragContext(() => {}, 10);
     dragContext.initDropZone('foobar');
 
     BaseComponent = makeMockComponent(View);

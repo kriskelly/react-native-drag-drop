@@ -11,11 +11,10 @@ import {
 
 describe('DragContext', () => {
   let context;
-  let edgeThreshold;
+  let edgeThreshold: number = 15;
   let onDrop;
 
   beforeEach(() => {
-    edgeThreshold = 15;
     onDrop = sinon.stub();
     context = createDragContext(onDrop, edgeThreshold);
   });
