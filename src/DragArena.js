@@ -38,7 +38,9 @@ export function createDragArena(
   panDirection: string
 ): ReactClass {
   invariant(panDirection === 'x' ||
-            panDirection === 'y', 'Pan direction must be vertical (y) or horizontal (x)');
+            panDirection === 'y' ||
+            panDirection === 'any',
+            'Pan direction must be vertical (y), horizontal (x), or both (any)');
 
   class DragArena extends (React.Component : typeof ReactComponent) {
     props: Props;

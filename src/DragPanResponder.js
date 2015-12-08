@@ -15,22 +15,24 @@ import type { State } from './DragArena';
 
 function setBounds(bounds, tracker, direction) {
   return (e, gestureState) => {
-    if (direction === 'y') {
-      const aboveTop = gestureState.moveY < bounds.y;
-      const belowBottom = gestureState.moveY > (bounds.y + bounds.height);
-      const movingDownward = gestureState.vy > 0;
-      const movingUpward = gestureState.vy < 0;
-      if ((!aboveTop || movingDownward) && (!belowBottom || movingUpward)) {
-        return tracker(e, gestureState);
-      }
-    } else if (direction === 'x') {
-      const beyondLeft = gestureState.moveX < bounds.x;
-      const beyondRight = gestureState.moveX > (bounds.x + bounds.width);
-      const movingLeft = gestureState.vx < 0;
-      const movingRight = gestureState.vx > 0;
-      if ((!beyondLeft || movingRight) && (!beyondRight || movingLeft)) {
-        return tracker(e, gestureState);
-      }
+    const aboveTop = gestureState.moveY < bounds.y;
+    const belowBottom = gestureState.moveY > (bounds.y + bounds.height);
+    const movingDownward = gestureState.vy > 0;
+    const movingUpward = gestureState.vy < 0;
+    const canMoveY = (!aboveTop || movingDownward) && (!belowBottom || movingUpward);
+    const beyondLeft = gestureState.moveX < bounds.x;
+    const beyondRight = gestureState.moveX > (bounds.x + bounds.width);
+    const movingLeft = gestureState.vx < 0;
+    const movingRight = gestureState.vx > 0;
+    const canMoveX = (!beyondLeft || movingRight) && (!beyondRight || movingLeft);
+    if (direction === 'y' && canMoveY) {
+      return tracker(e, gestureState);
+    } else if (direction === 'x' && canMoveX) {
+      return tracker(e, gestureState);
+    } else if (direction === 'any'
+            && ((movingLeft || movingRight && canMoveX)
+              || (movingUpward || movingDownward && canMoveY))) {
+      return tracker(e, gestureState);
     }
   };
 }
@@ -55,10 +57,15 @@ function createOnPanResponderMove(
       null,
       {dy: pan.y}
     ];
-  } else {
+  } else if (panDirection === 'x') {
     trackerArgs = [
       null,
       {dx: pan.x}
+    ];
+  } else if (panDirection === 'any') {
+    trackerArgs = [
+      null,
+      {dx: pan.x, dy: pan.y}
     ];
   }
 

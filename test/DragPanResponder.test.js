@@ -20,6 +20,9 @@ describe('createDragPanResponder', () => {
   let onStop;
   let instance;
 
+  let contentHeight = 200;
+  let contentWidth = 100;
+
   beforeEach(() => {
     dragItem = {
       id: '123',
@@ -47,7 +50,7 @@ describe('createDragPanResponder', () => {
     };
 
     dragContext.getBaseLayout.returns({
-      x: 0, y: 0, width: 100, height: 200
+      x: 0, y: 0, width: contentWidth, height: contentHeight
     });
 
     onStop = sinon.stub();
@@ -100,17 +103,99 @@ describe('createDragPanResponder', () => {
         React.Animated.event.restore();
       });
 
-      function itAllowsTracking() {
+      function onPanResponderMove() {
         handlers.onPanResponderMove(e, gestureState);
+      }
+
+      function itAllowsTracking() {
         expect(eventTracker).to.have.been.calledWith(
           e, gestureState
         );
       }
 
       function itStopsTracking() {
-        handlers.onPanResponderMove(e, gestureState);
         expect(eventTracker).not.to.have.been.called;
       }
+
+      describe('tracking both axes', () => {
+        beforeEach(() => {
+          panDirection = 'any';
+          setup();
+          gestureState = {
+            moveX: 100,
+            moveY: 100
+          };
+          onPanResponderMove();
+        });
+
+        it('tracks x and y axis movement', () => {
+          expect(React.Animated.event).to.have.been.calledWithExactly(
+            [
+              null,
+              {
+                dx: instance.state.pan.x,
+                dy: instance.state.pan.y,
+              },
+            ]
+          );
+        });
+
+        describe('when moving up/down', () => {
+          beforeEach(() => {
+            gestureState.vy = 3;
+            gestureState.vx = 0;
+          });
+
+          describe('when can move Y', () => {
+            beforeEach(() => {
+              gestureState.moveY = contentHeight / 2;
+              onPanResponderMove();
+            });
+
+            it('tracks movement', () => {
+              itAllowsTracking();
+            });
+          });
+
+          describe('when cannot move Y', () => {
+            beforeEach(() => {
+              gestureState.moveY = contentHeight + 10;
+              onPanResponderMove();
+            });
+
+            it('it stops tracking', () => {
+              itStopsTracking();
+            });
+          });
+        });
+
+        describe('when moving left/right', () => {
+          beforeEach(() => {
+            gestureState.vx = 3;
+            gestureState.vy = 0;
+          });
+          describe('when can move left or right', () => {
+            beforeEach(() => {
+              gestureState.moveX = contentWidth / 2;
+              onPanResponderMove();
+            });
+
+            it('tracks', () => {
+              itAllowsTracking();
+            })
+          });
+          describe('when cannot move X', () => {
+            beforeEach(() => {
+              gestureState.moveX = contentWidth + 10;
+              onPanResponderMove();
+            });
+
+            it('it stops tracking', () => {
+              itStopsTracking();
+            });
+          });
+        });
+      });
 
       describe('x axis tracking', () => {
         beforeEach(() => {
@@ -122,7 +207,7 @@ describe('createDragPanResponder', () => {
           gestureState = {
             moveX: 100
           };
-          handlers.onPanResponderMove(e, gestureState);
+          onPanResponderMove();
           expect(React.Animated.event).to.have.been.calledWithExactly(
             [
               null,
@@ -140,7 +225,7 @@ describe('createDragPanResponder', () => {
               gestureState = {
                 moveX: -5
               };
-
+              onPanResponderMove();
               itStopsTracking();
             });
 
@@ -150,7 +235,7 @@ describe('createDragPanResponder', () => {
                   moveX: -5,
                   vx: 3
                 };
-
+                onPanResponderMove();
                 itAllowsTracking();
               });
             });
@@ -161,6 +246,7 @@ describe('createDragPanResponder', () => {
               gestureState = {
                 moveX: 105
               };
+              onPanResponderMove();
               itStopsTracking();
             });
 
@@ -170,6 +256,7 @@ describe('createDragPanResponder', () => {
                   moveX: 105,
                   vx: -3
                 };
+                onPanResponderMove();
                 itAllowsTracking();
               });
             });
@@ -187,6 +274,7 @@ describe('createDragPanResponder', () => {
           gestureState = {
             moveY: 100
           };
+          onPanResponderMove();
           itAllowsTracking();
           expect(React.Animated.event).to.have.been.calledWithExactly(
             [
@@ -202,6 +290,7 @@ describe('createDragPanResponder', () => {
               gestureState = {
                 moveY: -5,
               };
+              onPanResponderMove();
               itStopsTracking();
             });
 
@@ -211,6 +300,7 @@ describe('createDragPanResponder', () => {
                   moveY: -5,
                   vy: 3
                 };
+                onPanResponderMove();
                 itAllowsTracking();
               });
             });
@@ -221,6 +311,7 @@ describe('createDragPanResponder', () => {
             gestureState = {
               moveY: 205
             };
+            onPanResponderMove();
             itStopsTracking();
           });
 
@@ -230,6 +321,7 @@ describe('createDragPanResponder', () => {
                 moveY: 205,
                 vy: -1
               };
+              onPanResponderMove();
               itAllowsTracking();
             });
           });

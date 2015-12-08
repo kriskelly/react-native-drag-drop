@@ -109,7 +109,7 @@ const DragArena = createDragArena(React.createClass({
       </View>
     );
   }
-}), DragShadow, dragContext, 'y');
+}), DragShadow, dragContext, 'any');
 
 const styles = StyleSheet.create({
   container: {
