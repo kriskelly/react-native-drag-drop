@@ -21,13 +21,20 @@ type Props = {
   scrollEnabled: boolean,
 };
 
-const AUTOSCROLL_POS_INCREMENT = 20;
-const AUTOSCROLL_TIME_INTERVAL = 300;
+const DEFAULT_AUTOSCROLL_POS_INCREMENT = 20;
+const DEFAULT_AUTOSCROLL_TIME_INTERVAL = 300;
 
-export function createAutoscrollable(Component: ReactClass): ReactClass {
+type Options = {
+  positionIncrement?: number,
+  scrollInterval?: number,
+};
+
+export function createAutoscrollable(Component: ReactClass, options: Options = {}): ReactClass {
   class Autoscrollable extends (React.Component : typeof ReactComponent) {
     props: Props;
     static defaultProps: {};
+    static scrollInterval: number;
+    static positionIncrement: number;
 
     context: {
       dragContext: DragContext
@@ -84,7 +91,7 @@ export function createAutoscrollable(Component: ReactClass): ReactClass {
       switch(dropZoneEdge) {
         case EdgeTypes.TOP: {
           // Move up
-          dy = 0 - AUTOSCROLL_POS_INCREMENT;
+          dy = 0 - Autoscrollable.positionIncrement;
           if (contentOffset.y <= layout.y) {
             this.stopAutoscroll();
             return;
@@ -92,7 +99,7 @@ export function createAutoscrollable(Component: ReactClass): ReactClass {
           break;
         }
         case EdgeTypes.BOTTOM: {
-          dy = AUTOSCROLL_POS_INCREMENT;
+          dy = Autoscrollable.positionIncrement;
           if (contentOffset.y >= (layout.y + layout.height)) {
             this.stopAutoscroll();
             return;
@@ -100,7 +107,7 @@ export function createAutoscrollable(Component: ReactClass): ReactClass {
           break;
         }
         case EdgeTypes.LEFT: {
-          dx = 0 - AUTOSCROLL_POS_INCREMENT;
+          dx = 0 - Autoscrollable.positionIncrement;
           if (contentOffset.x <= layout.x) {
             this.stopAutoscroll();
             return;
@@ -108,7 +115,7 @@ export function createAutoscrollable(Component: ReactClass): ReactClass {
           break;
         }
         case EdgeTypes.RIGHT: {
-          dx = AUTOSCROLL_POS_INCREMENT;
+          dx = Autoscrollable.positionIncrement;
           if (contentOffset.x >= (layout.x + layout.width)) {
             this.stopAutoscroll();
             return;
@@ -146,7 +153,7 @@ export function createAutoscrollable(Component: ReactClass): ReactClass {
       }
       this.autoscrollInterval = setInterval(() => {
         this._doAutoscroll(dropZoneEdge);
-      }, AUTOSCROLL_TIME_INTERVAL);
+      }, Autoscrollable.scrollInterval);
     }
 
     stopAutoscroll() {
@@ -170,5 +177,11 @@ export function createAutoscrollable(Component: ReactClass): ReactClass {
     dragContext: PropTypes.instanceOf(DragContext).isRequired,
   };
 
+  Autoscrollable.scrollInterval = options.scrollInterval
+                                ? options.scrollInterval
+                                : DEFAULT_AUTOSCROLL_TIME_INTERVAL;
+  Autoscrollable.positionIncrement = options.positionIncrement
+                                   ? options.positionIncrement
+                                   : DEFAULT_AUTOSCROLL_POS_INCREMENT;
   return Autoscrollable;
 }

@@ -70,6 +70,18 @@ describe('createAutoscrollable', () => {
     instance = tree.getMountedInstance();
   }
 
+  it('can receive options for position increment and default time interval', () => {
+    const componentWithOptions = createAutoscrollable(
+      BaseComponent,
+      {
+        positionIncrement: 123,
+        scrollInterval: 456,
+      }
+    );
+    expect(componentWithOptions.positionIncrement).to.equal(123);
+    expect(componentWithOptions.scrollInterval).to.equal(456);
+  });
+
   it('renders original component', () => {
     subject();
     expect(vdom.type).to.equal(BaseComponent);
