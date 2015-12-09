@@ -60,7 +60,19 @@ const DragShadow = createDragShadow(React.createClass({
   }
 }));
 
+let dragItems = [];
+for (let i = 0; i < 50; i++) {
+  dragItems.push({
+    id: 'blue-item-' + i,
+    type: 'blue'
+  });
+}
+
 const ScrollingDropZone = createDropZone(createAutoscrollable(React.createClass({
+
+  shouldComponentUpdate() {
+    return false;
+  },
 
   scrollTo(y, x) {
     this.scrollView.scrollTo(y, x);
@@ -69,21 +81,23 @@ const ScrollingDropZone = createDropZone(createAutoscrollable(React.createClass(
   render() {
     const {
       onDragItemLayout, // Injected by createDropZone()
+      onScroll, // createDropZone()
       startDragHandler,
     } = this.props;
 
-    const dragItems = [
-      {id: 'bluefoo', type: 'blue'},
-      {id: 'bluebar', type: 'blue'},
-      {id: 'bluebaz', type: 'blue'},
-    ];
+    // Implementation notes:
+    // Make sure that scrollEventThrottle > 0, otherwise
+    // the content offset won't be correct after scrolling.
 
     return (
       <ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={3}
         style={[styles.scrollingDropZone]}
         ref={component => this.scrollView = component}>
         {dragItems.map(dragItem => (
           <DraggableThing
+            key={dragItem.id}
             onLayout={(e) => onDragItemLayout(dragItem, e)}
             onLongPress={() => startDragHandler(dragItem)} />
         ))}
@@ -119,6 +133,7 @@ const styles = StyleSheet.create({
   },
   draggableThing: {
     margin: 10,
+    width: 150,
   },
   dragShadow: {
     position: 'absolute', // Don't forget to add position: absolute because position styles are calculated.
@@ -127,6 +142,7 @@ const styles = StyleSheet.create({
   scrollingDropZone: {
     backgroundColor: 'lightblue',
     height: 1000,
+    width: 300,
   },
 });
 
