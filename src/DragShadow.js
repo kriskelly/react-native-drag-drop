@@ -3,11 +3,11 @@
 'use strict';
 
 import invariant from 'invariant';
-import React from 'react-native';
+import React from 'react';
 
-const {
+import {
   Animated,
-} = React;
+} from 'react-native';
 
 import type {
   DragShadowStyle,

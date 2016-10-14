@@ -2,13 +2,12 @@
 
 'use strict';
 
-import React from 'react-native';
-const {
+import React, { PropTypes } from 'react';
+import {
   Animated,
   PanResponder,
-  PropTypes,
   View,
-} = React;
+} from 'react-native';
 
 import invariant from 'invariant';
 import { DragContext } from './DragContext';

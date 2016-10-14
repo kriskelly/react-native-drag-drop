@@ -2,11 +2,10 @@
 
 'use strict';
 
-import React from 'react-native';
-const {
-  PropTypes,
+import React, { PropTypes } from 'react';
+import {
   View,
-} = React;
+} from 'react-native';
 
 import invariant from 'invariant';
 import { DragContext } from './DragContext';

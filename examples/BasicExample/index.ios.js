@@ -4,7 +4,8 @@
  */
 'use strict';
 
-import React from 'react-native';
+import React from 'react';
+import ReactNative from 'react-native';
 import {
   createAutoscrollable,
   createDragArena,
@@ -12,6 +13,8 @@ import {
   createDragShadow,
   createDropZone,
 } from 'react-native-drag-drop';
+
+const {} = React;
 
 const {
   AlertIOS,
@@ -21,7 +24,7 @@ const {
   Text,
   TouchableHighlight,
   View,
-} = React;
+} = ReactNative;
 
 const dragContext = createDragContext((props, state) => {
   const dragItem = state.dragItem; // This should probably be passed as the 1st arg to onDrop.

@@ -2,11 +2,11 @@
 
 'use strict';
 
-import React from 'react-native';
+import React from 'react';
 
-const {
+import {
   Animated
-} = React;
+} from 'react-native';
 
 export type SyntheticNativeEvent = {
   nativeEvent: any

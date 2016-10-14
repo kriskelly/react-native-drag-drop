@@ -2,11 +2,11 @@
 
 'use strict';
 
-import React from 'react-native';
-const {
+import React from 'react';
+import {
   Animated,
   PanResponder,
-} = React;
+} from 'react-native';
 
 import { DragContext } from './DragContext';
 import invariant from 'invariant';
@@ -120,4 +120,3 @@ export function createDragPanResponder(
     state, dragContext, panDirection, onStop
   ));
 }
-
